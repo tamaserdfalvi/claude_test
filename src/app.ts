@@ -3,6 +3,7 @@ import swaggerUi from 'swagger-ui-express';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Server } from 'http';
 import healthRoutes from './routes/health';
 
 class App {
@@ -71,6 +72,14 @@ class App {
       });
     });
 
+    // Test error endpoint (only in test environment)
+    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+      this.app.get('/test-error', (req: Request, res: Response, next: NextFunction): void => {
+        const error = new Error('Test error for coverage');
+        next(error);
+      });
+    }
+
     // 404 handler for undefined routes
     this.app.use('*', (req: Request, res: Response): void => {
       res.status(404).json({
@@ -95,13 +104,14 @@ class App {
     });
   }
 
-  public listen(): void {
-    this.app.listen(this.port, (): void => {
+  public listen(): Server {
+    const server = this.app.listen(this.port, (): void => {
       console.log(`🚀 Server running on port ${this.port}`);
       console.log(`📱 Health check: http://localhost:${this.port}/api/health`);
       console.log(`📖 API docs: http://localhost:${this.port}/api-docs`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
+    return server;
   }
 
   public getApp(): Application {

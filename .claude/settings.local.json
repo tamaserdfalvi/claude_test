@@ -46,7 +46,8 @@
       "Bash(npm run test:coverage:*)",
       "Bash(git reset:*)",
       "Bash(rm:*)",
-      "mcp__github-server__add_issue_comment"
+      "mcp__github-server__add_issue_comment",
+      "Bash(npm test:*)"
     ],
     "deny": []
   }

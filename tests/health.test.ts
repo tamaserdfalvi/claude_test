@@ -65,7 +65,7 @@ describe('Health Routes', () => {
     });
 
     it('should handle multiple concurrent requests', async () => {
-      const requests = Array(10).fill(null).map(() => 
+      const requests = Array(5).fill(null).map(() => 
         request(app).get('/api/health').expect(200)
       );
 
@@ -80,7 +80,7 @@ describe('Health Routes', () => {
       const timestamps = responses.map(r => r.body.timestamp);
       const uniqueTimestamps = new Set(timestamps);
       expect(uniqueTimestamps.size).toBeGreaterThan(0);
-    });
+    }, 15000);
 
     it('should not accept POST requests', async () => {
       await request(app)

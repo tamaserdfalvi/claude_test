@@ -1,4 +1,5 @@
 import App from './app';
+import { Server } from 'http';
 
 // Handle environment variables
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
@@ -6,17 +7,29 @@ const NODE_ENV: string = process.env.NODE_ENV || 'development';
 
 // Initialize and start the application
 const app = new App(PORT);
+let server: Server;
+
+// Graceful shutdown function
+const gracefulShutdown = (signal: string): void => {
+  console.log(`${signal} received. Shutting down gracefully...`);
+  if (server) {
+    server.close((err) => {
+      if (err) {
+        console.error('Error during server shutdown:', err);
+        process.exit(1);
+      } else {
+        console.log('Server closed successfully');
+        process.exit(0);
+      }
+    });
+  } else {
+    process.exit(0);
+  }
+};
 
 // Graceful shutdown handling
-process.on('SIGTERM', (): void => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  process.exit(0);
-});
-
-process.on('SIGINT', (): void => {
-  console.log('SIGINT received. Shutting down gracefully...');
-  process.exit(0);
-});
+process.on('SIGTERM', (): void => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', (): void => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error: Error): void => {
@@ -31,6 +44,6 @@ process.on('unhandledRejection', (reason: unknown): void => {
 });
 
 // Start the server
-app.listen();
+server = app.listen();
 
 export default app;

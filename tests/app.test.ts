@@ -1,17 +1,26 @@
 import request from 'supertest';
 import App from '../src/app';
+import { Server } from 'http';
 
 describe('App', () => {
   let app: App;
   let server: any;
+  let httpServer: Server | null = null;
 
   beforeAll(() => {
     app = new App(0); // Use port 0 for random available port
     server = app.getApp();
   });
 
-  afterAll(() => {
-    // Clean up any resources if needed
+  afterAll(async () => {
+    // Clean up any server instances if they were created
+    if (httpServer) {
+      await new Promise<void>((resolve) => {
+        (httpServer as Server).close(() => {
+          resolve();
+        });
+      });
+    }
   });
 
   describe('GET /', () => {
@@ -119,6 +128,60 @@ describe('App', () => {
         .expect(404); // Should be 404 since POST /api/health doesn't exist
 
       expect(response.body.error).toContain('Route /api/health not found');
+    });
+  });
+
+  describe('Error Handling in Main App', () => {
+    it('should handle errors through global error handler', async () => {
+      // Mock console.error to capture error logging
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      const response = await request(server)
+        .get('/test-error')
+        .expect(500);
+
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Internal server error',
+        timestamp: expect.any(String)
+        // Details may or may not be included depending on NODE_ENV
+      });
+
+      // Verify error was logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Unhandled error:', expect.any(Error));
+      
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle errors in development mode', async () => {
+      // Set development environment
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      
+      // Create new app instance for development testing
+      const devApp = new App(0);
+      const devServer = devApp.getApp();
+      
+      // Mock console.error to capture error logging
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      const response = await request(devServer)
+        .get('/test-error')
+        .expect(500);
+
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Internal server error',
+        timestamp: expect.any(String),
+        details: 'Test error for coverage'
+      });
+
+      // Verify error was logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Unhandled error:', expect.any(Error));
+      
+      // Restore environment and mocks
+      process.env.NODE_ENV = originalEnv;
+      consoleErrorSpy.mockRestore();
     });
   });
 });
