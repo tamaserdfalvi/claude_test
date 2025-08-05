@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: AI Dev Team API
+  description: A simple Node.js Express API with TypeScript for the AI Dev Team project
+  version: 1.0.0
+  contact:
+    name: AI Dev Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  /:
+    get:
+      summary: Root endpoint
+      description: Returns basic API information including name, version, and timestamp
+      operationId: getRoot
+      tags:
+        - General
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "AI Dev Team API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-08-05T15:18:31.000Z"
+                required:
+                  - message
+                  - version
+                  - timestamp
+
+  /api/health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the API service
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      description: Health check response
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-08-05T15:18:31.000Z"
+      required:
+        - status
+        - timestamp
+
+    ApiResponse:
+      type: object
+      description: Generic API response wrapper
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Response data (varies by endpoint)
+        error:
+          type: string
+          example: "Error message"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-08-05T15:18:31.000Z"
+      required:
+        - success
+        - timestamp
+
+    ErrorResponse:
+      type: object
+      description: Error response for undefined routes or server errors
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Route /api/undefined not found"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-08-05T15:18:31.000Z"
+        details:
+          type: string
+          description: Additional error details (development mode only)
+          example: "Stack trace or detailed error message"
+      required:
+        - success
+        - error
+        - timestamp
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Route /api/undefined not found"
+            timestamp: "2025-08-05T15:18:31.000Z"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Internal server error"
+            timestamp: "2025-08-05T15:18:31.000Z"
+
+tags:
+  - name: General
+    description: General API endpoints
+  - name: Health
+    description: Health check endpoints
