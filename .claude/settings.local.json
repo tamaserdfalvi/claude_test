@@ -38,7 +38,14 @@
       "Bash(touch:*)",
       "Bash(npm install)",
       "Bash(npm run build:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "mcp__github-server__get_issue",
+      "Bash(npm run test:coverage:*)",
+      "Bash(git reset:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }
